@@ -454,6 +454,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_prototype_lyon"
+version = "0.2.0"
+source = "git+https://github.com/NiklasEi/bevy_prototype_lyon?rev=bf7ea1bb9251ce63dbc0c06fabf6239133a40b67#bf7ea1bb9251ce63dbc0c06fabf6239133a40b67"
+dependencies = [
+ "bevy",
+ "lyon_tessellation",
+ "svgtypes",
+]
+
+[[package]]
 name = "bevy_reflect"
 version = "0.4.0"
 source = "git+https://github.com/bevyengine/bevy/?rev=7a511394ac6c4f90b5398ab6333f1bd4fd665613#7a511394ac6c4f90b5398ab6333f1bd4fd665613"
@@ -1269,6 +1279,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "398ea4fabe40b9b0d885340a2a991a44c8a645624075ad966d21f88688e2b69e"
 
 [[package]]
+name = "float-cmp"
+version = "0.5.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "75224bec9bfe1a65e2d34132933f2de7fe79900c96a0174307554244ece8150e"
+
+[[package]]
 name = "flume"
 version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1381,10 +1397,11 @@ dependencies = [
 
 [[package]]
 name = "game_plugin"
-version = "0.1.1"
+version = "0.1.0"
 dependencies = [
  "bevy",
  "bevy_kira_audio",
+ "bevy_prototype_lyon",
  "rand",
 ]
 
@@ -1949,6 +1966,37 @@ dependencies = [
 ]
 
 [[package]]
+name = "lyon_geom"
+version = "0.17.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "edb987cd391542608ca8d43c0cd5ec44ebe4a0957eb89769a316c99d7fe14537"
+dependencies = [
+ "arrayvec",
+ "euclid",
+ "num-traits",
+]
+
+[[package]]
+name = "lyon_path"
+version = "0.17.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "23d64beb93be63439bc744041d132d62fdec831181eeb474f675e5f6a81f5ac1"
+dependencies = [
+ "lyon_geom",
+]
+
+[[package]]
+name = "lyon_tessellation"
+version = "0.17.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f982ed26be45d240227e7e1b1f7368b8e671512deb2c441c47c5c77e2a179648"
+dependencies = [
+ "arrayvec",
+ "lyon_path",
+ "sid",
+]
+
+[[package]]
 name = "mach"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2218,7 +2266,7 @@ dependencies = [
 
 [[package]]
 name = "nobody_is_perfect"
-version = "0.1.1"
+version = "0.1.0"
 dependencies = [
  "bevy",
  "embed-resource",
@@ -2804,6 +2852,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7fdf1b9db47230893d76faad238fd6097fd6d6a9245cd7a4d90dbd639536bbd2"
 
 [[package]]
+name = "sid"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bd5ac56c121948b4879bba9e519852c211bcdd8f014efff766441deff0b91bdb"
+dependencies = [
+ "num-traits",
+]
+
+[[package]]
+name = "siphasher"
+version = "0.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0b8de496cf83d4ed58b6be86c3a275b8602f6ffe98d3024a869e124147a9a3ac"
+
+[[package]]
 name = "slab"
 version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2944,6 +3007,16 @@ name = "svg_fmt"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8fb1df15f412ee2e9dfc1c504260fa695c1c3f10fe9f4a6ee2d2184d7d6450e2"
+
+[[package]]
+name = "svgtypes"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9c536faaff1a10837cfe373142583f6e27d81e96beba339147e77b67c9f260ff"
+dependencies = [
+ "float-cmp",
+ "siphasher",
+]
 
 [[package]]
 name = "syn"

@@ -1,6 +1,6 @@
 [package]
 name = "game_plugin"
-version = "0.1.1"
+version = "0.1.0"
 authors = ["Niklas Eicker <git@nikl.me>"]
 edition = "2018"
 
@@ -19,4 +19,5 @@ default = [
 [dependencies]
 bevy = { git = "https://github.com/bevyengine/bevy/", rev = "7a511394ac6c4f90b5398ab6333f1bd4fd665613", default-features = false }
 bevy_kira_audio = { git="https://github.com/NiklasEi/bevy_kira_audio.git", branch = "bevy_master" }
+bevy_prototype_lyon = {git = "https://github.com/NiklasEi/bevy_prototype_lyon", rev = "bf7ea1bb9251ce63dbc0c06fabf6239133a40b67"}
 rand = "0.8.3"

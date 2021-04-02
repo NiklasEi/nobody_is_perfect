@@ -339,16 +339,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bevy_game"
-version = "0.1.1"
-dependencies = [
- "bevy",
- "embed-resource",
- "game_plugin",
- "winit",
-]
-
-[[package]]
 name = "bevy_gltf"
 version = "0.4.0"
 source = "git+https://github.com/bevyengine/bevy/?rev=7a511394ac6c4f90b5398ab6333f1bd4fd665613#7a511394ac6c4f90b5398ab6333f1bd4fd665613"
@@ -2224,6 +2214,16 @@ dependencies = [
  "cc",
  "cfg-if 1.0.0",
  "libc",
+]
+
+[[package]]
+name = "nobody_is_perfect"
+version = "0.1.1"
+dependencies = [
+ "bevy",
+ "embed-resource",
+ "game_plugin",
+ "winit",
 ]
 
 [[package]]

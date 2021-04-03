@@ -7,6 +7,7 @@ use bevy_prototype_lyon::prelude::*;
 use rand::distributions::Standard;
 use rand::prelude::Distribution;
 use rand::{random, Rng};
+use bevy::utils::Duration;
 
 pub struct EntitiesPlugin;
 
@@ -15,20 +16,17 @@ struct SpawnEntityStage;
 
 impl Plugin for EntitiesPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_stage_before(
-            CoreStage::Update,
-            SpawnEntityStage,
-            SystemStage::parallel()
-                .with_run_criteria(FixedTimestep::step(2.0))
-                .with_system(spawn_entity.system()),
-        )
+        app.insert_resource(EntityTimer::from_seconds(2., true))
         .add_system_set(
             SystemSet::on_update(GameState::Playing)
                 .with_system(move_entities.system())
-                .with_system(redraw_after_level_up.system()),
+                .with_system(redraw_after_level_up.system())
+                .with_system(spawn_entity.system()),
         );
     }
 }
+
+type EntityTimer = Timer;
 
 #[derive(Clone)]
 pub enum EntityForm {
@@ -88,15 +86,21 @@ pub struct BefriendedEntity;
 pub struct GameEntity {
     pub true_form: EntityForm,
     pub current_direction: Vec2,
+    pub last_contact: Duration,
     pub known: bool,
 }
 
-fn spawn_entity(mut commands: Commands, player_state: Res<PlayerState>) {
+fn spawn_entity(mut commands: Commands, player_state: Res<PlayerState>, mut timer: ResMut<EntityTimer>, time: Res<Time>) {
+    if !timer.tick(time.delta()).just_finished() {
+        return;
+    }
+
     let form: EntityForm = random();
     let entity = GameEntity {
         true_form: form.clone(),
         current_direction: Vec2::new((2. * random::<f32>()) - 1., (2. * random::<f32>()) - 1.)
             .normalize(),
+        last_contact: Duration::from_secs(0),
         known: false,
     };
     if player_state.level >= entity.true_form.level() {

@@ -202,10 +202,11 @@ fn move_field_of_view(
 fn mark_entities_in_field_of_view(
     mut commands: Commands,
     field_of_view: Query<(&Transform, &FieldOfView), Without<GameEntity>>,
-    entities: Query<(Entity, &Transform, &GameEntity), Without<BefriendedEntity>>,
+    mut entities: Query<(Entity, &Transform, &mut GameEntity), Without<BefriendedEntity>>,
     mut befriend_event: EventWriter<BefriendEvent>,
     mut level_up_event: EventWriter<LevelUpEvent>,
     mut player_state: ResMut<PlayerState>,
+    time: Res<Time>
 ) {
     if let Ok((fov_transform, field_of_view)) = field_of_view.single() {
         let player_rotation = fov_transform
@@ -223,7 +224,8 @@ fn mark_entities_in_field_of_view(
             player_rotation.cos(),
             0.,
         );
-        for (entity, transform, game_entity) in entities.iter() {
+        let millis_since_startup = time.time_since_startup().as_millis();
+        for (entity, transform, mut game_entity) in entities.iter_mut() {
             let entity_from_player = transform.translation - fov_transform.translation;
             if (entity_from_player.length() < field_of_view.height)
                 && (entity_from_player.angle_between(fov_direction).abs()
@@ -234,6 +236,7 @@ fn mark_entities_in_field_of_view(
                     let new_game_entity = GameEntity {
                         true_form: game_entity.true_form.clone(),
                         current_direction: game_entity.current_direction.clone(),
+                        last_contact: game_entity.last_contact,
                         known: true,
                     };
                     commands.entity(entity).despawn();
@@ -250,8 +253,9 @@ fn mark_entities_in_field_of_view(
                         .insert(new_game_entity)
                         .insert(BefriendedEntity);
                     player_state.courage += 20.;
-                } else {
+                } else if millis_since_startup - game_entity.last_contact.as_millis() > 2000 {
                     player_state.courage -= 20.;
+                    game_entity.last_contact = time.time_since_startup();
                 }
             }
         }

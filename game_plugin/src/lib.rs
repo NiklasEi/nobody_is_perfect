@@ -33,7 +33,7 @@ impl Plugin for GamePlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_state(GameState::Loading)
             .insert_resource(GameWorld {
-                border: 500.,
+                border: 1000.,
             })
             .add_plugin(ShapePlugin)
             .add_plugin(EntitiesPlugin)

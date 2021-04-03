@@ -32,6 +32,8 @@ pub struct AudioAssets {
     pub hi_1: Handle<AudioSource>,
     pub hi_2: Handle<AudioSource>,
     pub hi_3: Handle<AudioSource>,
+    pub nope_1: Handle<AudioSource>,
+    pub nope_2: Handle<AudioSource>,
 }
 
 pub struct TextureAssets {
@@ -47,6 +49,8 @@ fn start_loading(mut commands: Commands, asset_server: Res<AssetServer>) {
     audio.push(asset_server.load_untyped(PATHS.audio_hi_1));
     audio.push(asset_server.load_untyped(PATHS.audio_hi_2));
     audio.push(asset_server.load_untyped(PATHS.audio_hi_3));
+    audio.push(asset_server.load_untyped(PATHS.audio_nope_1));
+    audio.push(asset_server.load_untyped(PATHS.audio_nope_2));
 
     let mut textures: Vec<HandleUntyped> = vec![];
     textures.push(asset_server.load_untyped(PATHS.texture_bevy));
@@ -89,6 +93,8 @@ fn check_state(
         hi_1: asset_server.get_handle(PATHS.audio_hi_1),
         hi_2: asset_server.get_handle(PATHS.audio_hi_2),
         hi_3: asset_server.get_handle(PATHS.audio_hi_3),
+        nope_1: asset_server.get_handle(PATHS.audio_nope_1),
+        nope_2: asset_server.get_handle(PATHS.audio_nope_2),
     });
 
     commands.insert_resource(TextureAssets {

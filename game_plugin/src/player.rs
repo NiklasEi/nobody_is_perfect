@@ -28,6 +28,7 @@ pub struct InFieldOfView;
 
 pub struct BefriendEvent;
 pub struct LevelUpEvent;
+pub struct NopeEvent;
 
 #[derive(SystemLabel, Clone, Hash, Debug, Eq, PartialEq)]
 enum PlayerSystemLabels {
@@ -48,6 +49,7 @@ impl Plugin for PlayerPlugin {
             StorageType::SparseSet,
         ))
         .add_event::<BefriendEvent>()
+        .add_event::<NopeEvent>()
         .add_event::<LevelUpEvent>()
         .add_system_set(
             SystemSet::on_enter(GameState::Playing)
@@ -204,9 +206,10 @@ fn mark_entities_in_field_of_view(
     field_of_view: Query<(&Transform, &FieldOfView), Without<GameEntity>>,
     mut entities: Query<(Entity, &Transform, &mut GameEntity), Without<BefriendedEntity>>,
     mut befriend_event: EventWriter<BefriendEvent>,
+    mut nope_event: EventWriter<NopeEvent>,
     mut level_up_event: EventWriter<LevelUpEvent>,
     mut player_state: ResMut<PlayerState>,
-    time: Res<Time>
+    time: Res<Time>,
 ) {
     if let Ok((fov_transform, field_of_view)) = field_of_view.single() {
         let player_rotation = fov_transform
@@ -237,6 +240,7 @@ fn mark_entities_in_field_of_view(
                         true_form: game_entity.true_form.clone(),
                         current_direction: game_entity.current_direction.clone(),
                         last_contact: game_entity.last_contact,
+                        next_direction_change: game_entity.next_direction_change,
                         known: true,
                     };
                     commands.entity(entity).despawn();
@@ -254,6 +258,7 @@ fn mark_entities_in_field_of_view(
                         .insert(BefriendedEntity);
                     player_state.courage += 20.;
                 } else if millis_since_startup - game_entity.last_contact.as_millis() > 2000 {
+                    nope_event.send(NopeEvent);
                     player_state.courage -= 20.;
                     game_entity.last_contact = time.time_since_startup();
                 }

@@ -1,5 +1,5 @@
 use crate::loading::AudioAssets;
-use crate::player::BefriendEvent;
+use crate::player::{BefriendEvent, NopeEvent};
 use crate::GameState;
 use bevy::prelude::*;
 use bevy_kira_audio::{Audio, AudioChannel, AudioPlugin};
@@ -16,7 +16,9 @@ impl Plugin for InternalAudioPlugin {
         .add_plugin(AudioPlugin)
         .add_system_set(SystemSet::on_enter(GameState::Playing).with_system(start_audio.system()))
         .add_system_set(
-            SystemSet::on_update(GameState::Playing).with_system(befriend_audio.system()),
+            SystemSet::on_update(GameState::Playing)
+                .with_system(befriend_audio.system())
+                .with_system(nope_audio.system()),
         )
         .add_system_set(SystemSet::on_exit(GameState::Playing).with_system(stop_audio.system()));
     }
@@ -48,6 +50,22 @@ fn befriend_audio(
             audio.play_in_channel(audio_assets.hi_2.clone(), &channels.effects);
         } else {
             audio.play_in_channel(audio_assets.hi_3.clone(), &channels.effects);
+        }
+    }
+}
+
+fn nope_audio(
+    audio_assets: Res<AudioAssets>,
+    audio: Res<Audio>,
+    channels: Res<AudioChannels>,
+    mut events: EventReader<NopeEvent>,
+) {
+    if let Some(_event) = events.iter().last() {
+        let random_value = random::<f32>();
+        if random_value > 0.5 {
+            audio.play_in_channel(audio_assets.nope_1.clone(), &channels.effects);
+        } else {
+            audio.play_in_channel(audio_assets.nope_2.clone(), &channels.effects);
         }
     }
 }

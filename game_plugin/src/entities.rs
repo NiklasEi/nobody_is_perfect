@@ -1,13 +1,12 @@
 use crate::player::{LevelUpEvent, PlayerState};
 use crate::GameState;
-use bevy::core::FixedTimestep;
 use bevy::prelude::*;
+use bevy::utils::Duration;
 use bevy_prototype_lyon::prelude::shapes::*;
 use bevy_prototype_lyon::prelude::*;
 use rand::distributions::Standard;
 use rand::prelude::Distribution;
-use rand::{random, Rng};
-use bevy::utils::Duration;
+use rand::{random, thread_rng, Rng};
 
 pub struct EntitiesPlugin;
 
@@ -17,12 +16,12 @@ struct SpawnEntityStage;
 impl Plugin for EntitiesPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.insert_resource(EntityTimer::from_seconds(2., true))
-        .add_system_set(
-            SystemSet::on_update(GameState::Playing)
-                .with_system(move_entities.system())
-                .with_system(redraw_after_level_up.system())
-                .with_system(spawn_entity.system()),
-        );
+            .add_system_set(
+                SystemSet::on_update(GameState::Playing)
+                    .with_system(move_entities.system())
+                    .with_system(redraw_after_level_up.system())
+                    .with_system(spawn_entity.system()),
+            );
     }
 }
 
@@ -87,10 +86,16 @@ pub struct GameEntity {
     pub true_form: EntityForm,
     pub current_direction: Vec2,
     pub last_contact: Duration,
+    pub next_direction_change: Duration,
     pub known: bool,
 }
 
-fn spawn_entity(mut commands: Commands, player_state: Res<PlayerState>, mut timer: ResMut<EntityTimer>, time: Res<Time>) {
+fn spawn_entity(
+    mut commands: Commands,
+    player_state: Res<PlayerState>,
+    mut timer: ResMut<EntityTimer>,
+    time: Res<Time>,
+) {
     if !timer.tick(time.delta()).just_finished() {
         return;
     }
@@ -101,6 +106,7 @@ fn spawn_entity(mut commands: Commands, player_state: Res<PlayerState>, mut time
         current_direction: Vec2::new((2. * random::<f32>()) - 1., (2. * random::<f32>()) - 1.)
             .normalize(),
         last_contact: Duration::from_secs(0),
+        next_direction_change: time.time_since_startup() + Duration::from_secs(2),
         known: false,
     };
     if player_state.level >= entity.true_form.level() {
@@ -147,7 +153,7 @@ fn redraw_after_level_up(
                     .spawn_bundle(GeometryBuilder::build_as(
                         &game_entity.true_form.to_shape(),
                         ShapeColors {
-                            main: Color::GRAY,
+                            main: Color::DARK_GRAY,
                             outline: Color::ANTIQUE_WHITE,
                         },
                         DrawMode::Fill(FillOptions::default()),
@@ -159,9 +165,24 @@ fn redraw_after_level_up(
     }
 }
 
-fn move_entities(mut entities_query: Query<(&mut Transform, &GameEntity)>) {
-    for (mut transform, entity) in entities_query.iter_mut() {
-        transform.translation +=
-            Vec3::new(entity.current_direction.x, entity.current_direction.y, 0.);
+fn move_entities(mut entities_query: Query<(&mut Transform, &mut GameEntity)>, time: Res<Time>) {
+    let millis_since_startup = time.time_since_startup().as_millis();
+    let mut random = thread_rng();
+    for (mut transform, mut game_entity) in entities_query.iter_mut() {
+        if millis_since_startup >= game_entity.next_direction_change.as_millis() {
+            game_entity.current_direction = Vec2::new(
+                (2. * random.gen::<f32>()) - 1.,
+                (2. * random.gen::<f32>()) - 1.,
+            )
+            .normalize();
+            game_entity.next_direction_change = time.time_since_startup()
+                + Duration::from_secs(2)
+                + Duration::from_secs(3).mul_f32(random.gen::<f32>());
+        }
+        transform.translation += Vec3::new(
+            game_entity.current_direction.x,
+            game_entity.current_direction.y,
+            0.,
+        );
     }
 }

@@ -3,6 +3,7 @@ mod audio;
 mod entities;
 mod loading;
 mod player;
+mod ui;
 
 use crate::actions::ActionsPlugin;
 use crate::audio::InternalAudioPlugin;
@@ -12,6 +13,7 @@ use crate::player::PlayerPlugin;
 use bevy::app::AppBuilder;
 // use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use crate::entities::EntitiesPlugin;
+use crate::ui::UiPlugin;
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::ShapePlugin;
 
@@ -35,6 +37,7 @@ impl Plugin for GamePlugin {
             })
             .add_plugin(ShapePlugin)
             .add_plugin(EntitiesPlugin)
+            .add_plugin(UiPlugin)
             .add_plugin(LoadingPlugin)
             .add_plugin(ActionsPlugin)
             .add_plugin(InternalAudioPlugin)

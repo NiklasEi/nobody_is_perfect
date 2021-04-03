@@ -1,5 +1,5 @@
 use crate::actions::Actions;
-use crate::entities::{GameEntity, KnownEntity};
+use crate::entities::{BefriendedEntity, GameEntity};
 use crate::{GameState, GameWorld};
 use bevy::ecs::component::{ComponentDescriptor, StorageType};
 use bevy::prelude::*;
@@ -12,7 +12,14 @@ use std::f32::consts::PI;
 pub struct PlayerPlugin;
 
 pub struct Player;
+
+pub struct PlayerState {
+    pub level: usize,
+    pub courage: f32,
+}
+
 pub struct PlayerCamera;
+
 pub struct FieldOfView {
     half_angle: f32,
     height: f32,
@@ -20,6 +27,7 @@ pub struct FieldOfView {
 pub struct InFieldOfView;
 
 pub struct BefriendEvent;
+pub struct LevelUpEvent;
 
 #[derive(SystemLabel, Clone, Hash, Debug, Eq, PartialEq)]
 enum PlayerSystemLabels {
@@ -32,10 +40,15 @@ impl Plugin for PlayerPlugin {
         app.insert_resource(CursorPosition {
             position: Vec2::new(0., 0.),
         })
+        .insert_resource(PlayerState {
+            level: 0,
+            courage: 0.0,
+        })
         .register_component(ComponentDescriptor::new::<InFieldOfView>(
             StorageType::SparseSet,
         ))
         .add_event::<BefriendEvent>()
+        .add_event::<LevelUpEvent>()
         .add_system_set(
             SystemSet::on_enter(GameState::Playing)
                 .with_system(spawn_player.system())
@@ -189,8 +202,10 @@ fn move_field_of_view(
 fn mark_entities_in_field_of_view(
     mut commands: Commands,
     field_of_view: Query<(&Transform, &FieldOfView), Without<GameEntity>>,
-    entities: Query<(Entity, &Transform, &GameEntity), Without<KnownEntity>>,
+    entities: Query<(Entity, &Transform, &GameEntity), Without<BefriendedEntity>>,
     mut befriend_event: EventWriter<BefriendEvent>,
+    mut level_up_event: EventWriter<LevelUpEvent>,
+    mut player_state: ResMut<PlayerState>,
 ) {
     if let Ok((fov_transform, field_of_view)) = field_of_view.single() {
         let player_rotation = fov_transform
@@ -214,26 +229,37 @@ fn mark_entities_in_field_of_view(
                 && (entity_from_player.angle_between(fov_direction).abs()
                     < field_of_view.half_angle)
             {
-                befriend_event.send(BefriendEvent);
-                let new_game_entity = GameEntity {
-                    true_form: game_entity.true_form.clone(),
-                    current_direction: game_entity.current_direction.clone(),
-                    known: true,
-                };
-                commands.entity(entity).despawn();
-                commands
-                    .spawn_bundle(GeometryBuilder::build_as(
-                        &new_game_entity.true_form.to_shape(),
-                        ShapeColors {
-                            main: Color::GREEN,
-                            outline: Color::ANTIQUE_WHITE,
-                        },
-                        DrawMode::Fill(FillOptions::default()),
-                        transform.clone(),
-                    ))
-                    .insert(new_game_entity)
-                    .insert(KnownEntity);
+                if game_entity.true_form.level() <= player_state.level {
+                    befriend_event.send(BefriendEvent);
+                    let new_game_entity = GameEntity {
+                        true_form: game_entity.true_form.clone(),
+                        current_direction: game_entity.current_direction.clone(),
+                        known: true,
+                    };
+                    commands.entity(entity).despawn();
+                    commands
+                        .spawn_bundle(GeometryBuilder::build_as(
+                            &new_game_entity.true_form.to_shape(),
+                            ShapeColors {
+                                main: Color::GREEN,
+                                outline: Color::ANTIQUE_WHITE,
+                            },
+                            DrawMode::Fill(FillOptions::default()),
+                            transform.clone(),
+                        ))
+                        .insert(new_game_entity)
+                        .insert(BefriendedEntity);
+                    player_state.courage += 20.;
+                } else {
+                    player_state.courage -= 20.;
+                }
             }
+        }
+        player_state.courage = player_state.courage.clamp(0., 100.);
+        if player_state.courage > 99.5 {
+            player_state.courage = 0.;
+            player_state.level += 1;
+            level_up_event.send(LevelUpEvent);
         }
     }
 }

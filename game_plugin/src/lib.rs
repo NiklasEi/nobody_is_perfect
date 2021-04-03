@@ -1,9 +1,9 @@
 mod actions;
 mod audio;
+mod entities;
 mod loading;
 mod menu;
 mod player;
-mod entities;
 
 use crate::actions::ActionsPlugin;
 use crate::audio::InternalAudioPlugin;
@@ -13,9 +13,9 @@ use crate::player::PlayerPlugin;
 
 use bevy::app::AppBuilder;
 // use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
+use crate::entities::EntitiesPlugin;
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::ShapePlugin;
-use crate::entities::EntitiesPlugin;
 
 #[derive(Clone, Eq, PartialEq, Debug, Hash)]
 enum GameState {

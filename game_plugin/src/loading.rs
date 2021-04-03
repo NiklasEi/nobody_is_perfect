@@ -95,5 +95,5 @@ fn check_state(
         texture_bevy: asset_server.get_handle(PATHS.texture_bevy),
     });
 
-    state.set(GameState::Menu).unwrap();
+    state.set(GameState::Playing).unwrap();
 }

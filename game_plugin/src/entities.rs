@@ -1,7 +1,6 @@
 use crate::GameState;
 use bevy::core::FixedTimestep;
 use bevy::prelude::*;
-use bevy_prototype_lyon::plugin::Stage::Shape;
 use bevy_prototype_lyon::prelude::shapes::*;
 use bevy_prototype_lyon::prelude::*;
 use rand::distributions::Standard;
@@ -79,11 +78,11 @@ fn spawn_entity(mut commands: Commands) {
     commands
         .spawn_bundle(GeometryBuilder::build_as(
             &Circle {
-                radius: 30.,
+                radius: 26.,
                 center: Default::default(),
             },
             ShapeColors {
-                main: Color::MIDNIGHT_BLUE,
+                main: Color::DARK_GRAY,
                 outline: Color::ANTIQUE_WHITE,
             },
             DrawMode::Fill(FillOptions::default()),

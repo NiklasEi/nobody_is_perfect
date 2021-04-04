@@ -13,6 +13,7 @@ impl Plugin for UiPlugin {
                 SystemSet::on_update(GameState::Playing)
                     .with_system(update_courage.system())
                     .with_system(spawn_death_ui.system())
+                    .with_system(update_courage_level.system())
                     .with_system(click_retry_button.system()),
             )
             .add_system_set(SystemSet::on_exit(GameState::Playing).with_system(remove_ui.system()));
@@ -140,6 +141,15 @@ fn update_courage(
             ..Default::default()
         };
         style.size = Size::new(Val::Px(200. - player_state.courage * 2.), Val::Px(30.));
+    }
+}
+
+fn update_courage_level(
+    mut courage_level: Query<&mut Text, With<CourageLevel>>,
+    player_state: Res<PlayerState>,
+) {
+    for mut text in courage_level.iter_mut() {
+        text.sections.first_mut().unwrap().value = format!("Courage level: {}", player_state.level)
     }
 }
 

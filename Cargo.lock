@@ -1397,7 +1397,7 @@ dependencies = [
 
 [[package]]
 name = "game_plugin"
-version = "0.2.2"
+version = "0.3.0"
 dependencies = [
  "bevy",
  "bevy_kira_audio",
@@ -2266,7 +2266,7 @@ dependencies = [
 
 [[package]]
 name = "nobody_is_perfect"
-version = "0.2.2"
+version = "0.3.0"
 dependencies = [
  "bevy",
  "embed-resource",

@@ -1,6 +1,6 @@
 [package]
 name = "nobody_is_perfect"
-version = "0.2.2"
+version = "0.3.0"
 authors = ["Niklas Eicker <git@nikl.me>"]
 edition = "2018"
 

@@ -17,6 +17,7 @@ impl Plugin for InternalAudioPlugin {
         .add_system_set(
             SystemSet::on_enter(GameState::RenderBackground).with_system(start_audio.system()),
         )
+        .add_system_set(SystemSet::on_enter(GameState::Playing).with_system(lets_go_audio.system()))
         .add_system_set(
             SystemSet::on_update(GameState::Playing)
                 .with_system(befriend_audio.system())
@@ -94,6 +95,10 @@ fn level_up_audio(
     if let Some(_event) = events.iter().last() {
         audio.play_in_channel(audio_assets.level_up.clone(), &channels.effects);
     }
+}
+
+fn lets_go_audio(audio_assets: Res<AudioAssets>, audio: Res<Audio>, channels: Res<AudioChannels>) {
+    audio.play_in_channel(audio_assets.lets_go.clone(), &channels.effects);
 }
 
 fn stop_audio(audio: Res<Audio>, channels: Res<AudioChannels>) {

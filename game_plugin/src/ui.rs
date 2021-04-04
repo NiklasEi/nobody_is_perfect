@@ -110,7 +110,7 @@ fn spawn_ui(
                 .spawn_bundle(TextBundle {
                     text: Text {
                         sections: vec![TextSection {
-                            value: "Courage level: 0".to_string(),
+                            value: "Courage level: 1/7".to_string(),
                             style: TextStyle {
                                 font_size: 30.0,
                                 color: Color::BLACK,
@@ -152,7 +152,7 @@ fn update_courage_level(
     if let Some(_event) = level_up_events.iter().last() {
         for mut text in courage_level.iter_mut() {
             text.sections.first_mut().unwrap().value =
-                format!("Courage level: {}", player_state.level)
+                format!("Courage level: {}/7", player_state.level + 1)
         }
     }
 }

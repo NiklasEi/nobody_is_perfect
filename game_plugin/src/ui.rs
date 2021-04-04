@@ -108,7 +108,12 @@ fn spawn_death_ui(
             .spawn_bundle(ButtonBundle {
                 style: Style {
                     size: Size::new(Val::Px(150.0), Val::Px(65.0)),
-                    margin: Rect::all(Val::Auto),
+                    margin: Rect {
+                        right: Val::Auto,
+                        left: Val::Auto,
+                        top: Val::Auto,
+                        bottom: Val::Percent(20.),
+                    },
                     justify_content: JustifyContent::Center,
                     align_items: AlignItems::Center,
                     ..Default::default()

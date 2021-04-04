@@ -79,7 +79,7 @@ impl Plugin for PlayerPlugin {
                     mark_entities_in_field_of_view
                         .system()
                         .after(PlayerSystemLabels::MoveFieldOfView),
-                ),
+                ).with_system(remove_fov_on_death.system()),
         )
         .add_system_set(SystemSet::on_exit(GameState::Playing).with_system(remove_player.system()));
     }
@@ -164,6 +164,9 @@ fn move_player(
     player_state: Res<PlayerState>,
 ) {
     if player_state.dead {
+        for mut player_transform in player_query.iter_mut() {
+            player_transform.scale = player_transform.scale * 0.99;
+        }
         return;
     }
     let speed = 150.;
@@ -299,6 +302,19 @@ fn mark_entities_in_field_of_view(
         }
     }
 }
+
+fn remove_fov_on_death(
+    mut commands: Commands,
+    mut events: EventReader<DyingEvent>,
+    fov_query: Query<Entity, With<FieldOfView>>,
+) {
+    if let Some(_event) = events.iter().last() {
+        for fov in fov_query.iter() {
+            commands.entity(fov).despawn();
+        }
+    }
+}
+
 
 fn remove_player(
     mut commands: Commands,

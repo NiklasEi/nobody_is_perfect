@@ -37,6 +37,7 @@ pub struct AudioAssets {
     pub dying: Handle<AudioSource>,
     pub level_up: Handle<AudioSource>,
     pub lets_go: Handle<AudioSource>,
+    pub won: Handle<AudioSource>,
 }
 
 pub struct TextureAssets {
@@ -57,6 +58,7 @@ fn start_loading(mut commands: Commands, asset_server: Res<AssetServer>) {
     audio.push(asset_server.load_untyped(PATHS.audio_dying));
     audio.push(asset_server.load_untyped(PATHS.audio_level_up));
     audio.push(asset_server.load_untyped(PATHS.audio_lets_go));
+    audio.push(asset_server.load_untyped(PATHS.audio_won));
 
     let mut textures: Vec<HandleUntyped> = vec![];
     textures.push(asset_server.load_untyped(PATHS.texture_background));
@@ -104,6 +106,7 @@ fn check_state(
         dying: asset_server.get_handle(PATHS.audio_dying),
         level_up: asset_server.get_handle(PATHS.audio_level_up),
         lets_go: asset_server.get_handle(PATHS.audio_lets_go),
+        won: asset_server.get_handle(PATHS.audio_won),
     });
 
     commands.insert_resource(TextureAssets {

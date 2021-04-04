@@ -220,7 +220,7 @@ fn spawn_won_text(
                     position_type: PositionType::Absolute,
                     position: Rect {
                         bottom: Val::Px(25.),
-                        left: Val::Px(220.),
+                        left: Val::Px(250.),
                         ..Default::default()
                     },
                     padding: {

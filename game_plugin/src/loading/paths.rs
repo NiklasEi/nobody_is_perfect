@@ -9,6 +9,7 @@ pub struct AssetPaths {
     pub audio_dying: &'static str,
     pub audio_level_up: &'static str,
     pub audio_lets_go: &'static str,
+    pub audio_won: &'static str,
     pub texture_background: &'static str,
 }
 
@@ -23,5 +24,6 @@ pub const PATHS: AssetPaths = AssetPaths {
     audio_dying: "audio/dead.ogg",
     audio_level_up: "audio/level_up.ogg",
     audio_lets_go: "audio/lets_go.ogg",
+    audio_won: "audio/won.ogg",
     texture_background: "textures/background.png",
 };

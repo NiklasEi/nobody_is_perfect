@@ -19,6 +19,16 @@ pub struct PlayerState {
     pub dead: bool,
 }
 
+impl Default for PlayerState {
+    fn default() -> Self {
+        Self {
+            dead: false,
+            level: 0,
+            courage: 50.0,
+        }
+    }
+}
+
 pub struct PlayerCamera;
 
 pub struct FieldOfView {
@@ -42,11 +52,6 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.insert_resource(CursorPosition {
             position: Vec2::new(0., 0.),
-        })
-        .insert_resource(PlayerState {
-            dead: false,
-            level: 0,
-            courage: 50.0,
         })
         .register_component(ComponentDescriptor::new::<InFieldOfView>(
             StorageType::SparseSet,
@@ -107,6 +112,7 @@ fn spawn_player(mut commands: Commands) {
             Transform::from_translation(Vec3::new(0., 0., 1.)),
         ))
         .insert(Player);
+    commands.insert_resource(PlayerState::default());
 }
 
 pub fn build_fov_geometry(field_of_view: &FieldOfView) -> impl Geometry {
@@ -294,8 +300,15 @@ fn mark_entities_in_field_of_view(
     }
 }
 
-fn remove_player(mut commands: Commands, player_query: Query<Entity, With<Player>>) {
+fn remove_player(
+    mut commands: Commands,
+    player_query: Query<Entity, With<Player>>,
+    fov_query: Query<Entity, With<FieldOfView>>,
+) {
     for player in player_query.iter() {
         commands.entity(player).despawn();
+    }
+    for fov in fov_query.iter() {
+        commands.entity(fov).despawn();
     }
 }

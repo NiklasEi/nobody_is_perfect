@@ -21,6 +21,9 @@ impl Plugin for EntitiesPlugin {
                     .with_system(move_entities.system())
                     .with_system(redraw_after_level_up.system())
                     .with_system(spawn_entity.system()),
+            )
+            .add_system_set(
+                SystemSet::on_exit(GameState::Playing).with_system(remove_entities.system()),
             );
     }
 }
@@ -184,5 +187,11 @@ fn move_entities(mut entities_query: Query<(&mut Transform, &mut GameEntity)>, t
             game_entity.current_direction.y,
             0.,
         );
+    }
+}
+
+fn remove_entities(mut commands: Commands, entity_query: Query<Entity, With<GameEntity>>) {
+    for entity in entity_query.iter() {
+        commands.entity(entity).despawn();
     }
 }

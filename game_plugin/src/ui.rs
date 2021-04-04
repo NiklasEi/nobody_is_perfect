@@ -1,4 +1,5 @@
-use crate::player::PlayerState;
+use crate::loading::FontAssets;
+use crate::player::{DyingEvent, PlayerState};
 use crate::GameState;
 use bevy::prelude::*;
 
@@ -6,15 +7,37 @@ pub struct UiPlugin;
 
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_system_set(SystemSet::on_enter(GameState::Playing).with_system(spawn_ui.system()))
+        app.init_resource::<ButtonMaterials>()
+            .add_system_set(SystemSet::on_enter(GameState::Playing).with_system(spawn_ui.system()))
             .add_system_set(
-                SystemSet::on_update(GameState::Playing).with_system(update_courage.system()),
-            );
+                SystemSet::on_update(GameState::Playing)
+                    .with_system(update_courage.system())
+                    .with_system(spawn_death_ui.system())
+                    .with_system(click_retry_button.system()),
+            )
+            .add_system_set(SystemSet::on_exit(GameState::Playing).with_system(remove_ui.system()));
     }
 }
 
+struct Ui;
 struct CourageMeter;
 struct CourageMeterRest;
+struct RetryButton;
+
+struct ButtonMaterials {
+    normal: Handle<ColorMaterial>,
+    hovered: Handle<ColorMaterial>,
+}
+
+impl FromWorld for ButtonMaterials {
+    fn from_world(world: &mut World) -> Self {
+        let mut materials = world.get_resource_mut::<Assets<ColorMaterial>>().unwrap();
+        ButtonMaterials {
+            normal: materials.add(Color::rgb(0.15, 0.15, 0.15).into()),
+            hovered: materials.add(Color::rgb(0.25, 0.25, 0.25).into()),
+        }
+    }
+}
 
 fn spawn_ui(mut commands: Commands, mut color_materials: ResMut<Assets<ColorMaterial>>) {
     let background = color_materials.add(Color::GRAY.into());
@@ -35,7 +58,8 @@ fn spawn_ui(mut commands: Commands, mut color_materials: ResMut<Assets<ColorMate
             material: courage.clone(),
             ..Default::default()
         })
-        .insert(CourageMeter);
+        .insert(CourageMeter)
+        .insert(Ui);
     commands
         .spawn_bundle(NodeBundle {
             style: Style {
@@ -51,7 +75,8 @@ fn spawn_ui(mut commands: Commands, mut color_materials: ResMut<Assets<ColorMate
             material: background.clone(),
             ..Default::default()
         })
-        .insert(CourageMeterRest);
+        .insert(CourageMeterRest)
+        .insert(Ui);
 }
 
 fn update_courage(
@@ -69,5 +94,75 @@ fn update_courage(
             ..Default::default()
         };
         style.size = Size::new(Val::Px(200. - player_state.courage * 2.), Val::Px(30.));
+    }
+}
+
+fn spawn_death_ui(
+    mut commands: Commands,
+    font_assets: Res<FontAssets>,
+    button_materials: Res<ButtonMaterials>,
+    mut events: EventReader<DyingEvent>,
+) {
+    if let Some(_event) = events.iter().last() {
+        commands
+            .spawn_bundle(ButtonBundle {
+                style: Style {
+                    size: Size::new(Val::Px(150.0), Val::Px(65.0)),
+                    margin: Rect::all(Val::Auto),
+                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::Center,
+                    ..Default::default()
+                },
+                material: button_materials.normal.clone(),
+                ..Default::default()
+            })
+            .insert(RetryButton)
+            .insert(Ui)
+            .with_children(|parent| {
+                parent.spawn_bundle(TextBundle {
+                    text: Text {
+                        sections: vec![TextSection {
+                            value: "Restart".to_string(),
+                            style: TextStyle {
+                                font_size: 40.0,
+                                color: Color::rgb(0.9, 0.9, 0.9),
+                                font: font_assets.fira_sans.clone(),
+                                ..Default::default()
+                            },
+                        }],
+                        alignment: Default::default(),
+                    },
+                    ..Default::default()
+                });
+            });
+    }
+}
+
+fn click_retry_button(
+    button_materials: Res<ButtonMaterials>,
+    mut state: ResMut<State<GameState>>,
+    mut interaction_query: Query<
+        (&Interaction, &mut Handle<ColorMaterial>),
+        (Changed<Interaction>, With<Button>),
+    >,
+) {
+    for (interaction, mut material) in interaction_query.iter_mut() {
+        match *interaction {
+            Interaction::Clicked => {
+                state.set(GameState::Restart).unwrap();
+            }
+            Interaction::Hovered => {
+                *material = button_materials.hovered.clone();
+            }
+            Interaction::None => {
+                *material = button_materials.normal.clone();
+            }
+        }
+    }
+}
+
+fn remove_ui(mut commands: Commands, text_query: Query<Entity, With<Ui>>) {
+    for entity in text_query.iter() {
+        commands.entity(entity).despawn_recursive();
     }
 }

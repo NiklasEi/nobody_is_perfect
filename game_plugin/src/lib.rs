@@ -24,6 +24,7 @@ enum GameState {
     Loading,
     Playing,
     Menu,
+    Restart,
 }
 
 pub struct GamePlugin;
@@ -35,9 +36,7 @@ pub struct GameWorld {
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_state(GameState::Loading)
-            .insert_resource(GameWorld {
-                border: 1000.,
-            })
+            .insert_resource(GameWorld { border: 1000. })
             .add_plugin(ShapePlugin)
             .add_plugin(EntitiesPlugin)
             .add_plugin(MenuPlugin)
@@ -46,8 +45,14 @@ impl Plugin for GamePlugin {
             .add_plugin(ActionsPlugin)
             .add_plugin(InternalAudioPlugin)
             .add_plugin(PlayerPlugin)
-            // .add_plugin(FrameTimeDiagnosticsPlugin::default())
-            // .add_plugin(LogDiagnosticsPlugin::default())
-            ;
+            .add_system_set(
+                SystemSet::on_enter(GameState::Restart).with_system(switch_to_game.system()),
+            );
+        // .add_plugin(FrameTimeDiagnosticsPlugin::default())
+        // .add_plugin(LogDiagnosticsPlugin::default())
     }
+}
+
+fn switch_to_game(mut state: ResMut<State<GameState>>) {
+    state.set(GameState::Playing).unwrap();
 }

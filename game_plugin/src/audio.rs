@@ -84,4 +84,5 @@ fn dying_audio(
 
 fn stop_audio(audio: Res<Audio>, channels: Res<AudioChannels>) {
     audio.stop_channel(&channels.background);
+    audio.stop_channel(&channels.effects);
 }

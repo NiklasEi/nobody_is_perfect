@@ -1,5 +1,5 @@
 use crate::loading::FontAssets;
-use crate::player::{DyingEvent, LevelUpEvent, PlayerState};
+use crate::player::{DyingEvent, LevelUpEvent, PlayerState, WonEvent};
 use crate::GameState;
 use bevy::prelude::*;
 
@@ -12,7 +12,8 @@ impl Plugin for UiPlugin {
             .add_system_set(
                 SystemSet::on_update(GameState::Playing)
                     .with_system(update_courage.system())
-                    .with_system(spawn_death_ui.system())
+                    .with_system(spawn_retry_ui.system())
+                    .with_system(spawn_won_text.system())
                     .with_system(update_courage_level.system())
                     .with_system(click_retry_button.system()),
             )
@@ -86,7 +87,7 @@ fn spawn_ui(
     commands
         .spawn_bundle(NodeBundle {
             style: Style {
-                size: Size::new(Val::Px(200.0), Val::Px(30.0)),
+                size: Size::new(Val::Px(215.0), Val::Px(30.0)),
                 position_type: PositionType::Absolute,
                 position: Rect {
                     right: Val::Px(15.),
@@ -157,13 +158,14 @@ fn update_courage_level(
     }
 }
 
-fn spawn_death_ui(
+fn spawn_retry_ui(
     mut commands: Commands,
     font_assets: Res<FontAssets>,
     button_materials: Res<ButtonMaterials>,
-    mut events: EventReader<DyingEvent>,
+    mut dying_events: EventReader<DyingEvent>,
+    mut won_events: EventReader<WonEvent>,
 ) {
-    if let Some(_event) = events.iter().last() {
+    if dying_events.iter().last().is_some() || won_events.iter().last().is_some() {
         commands
             .spawn_bundle(ButtonBundle {
                 style: Style {
@@ -188,6 +190,55 @@ fn spawn_death_ui(
                     text: Text {
                         sections: vec![TextSection {
                             value: "Restart".to_string(),
+                            style: TextStyle {
+                                font_size: 40.0,
+                                color: Color::rgb(0.9, 0.9, 0.9),
+                                font: font_assets.fira_sans.clone(),
+                                ..Default::default()
+                            },
+                        }],
+                        alignment: Default::default(),
+                    },
+                    ..Default::default()
+                });
+            });
+    }
+}
+
+fn spawn_won_text(
+    mut commands: Commands,
+    font_assets: Res<FontAssets>,
+    mut won_events: EventReader<WonEvent>,
+    mut color_materials: ResMut<Assets<ColorMaterial>>,
+) {
+    if won_events.iter().last().is_some() {
+        let background = color_materials.add(Color::GRAY.into());
+        commands
+            .spawn_bundle(NodeBundle {
+                style: Style {
+                    position_type: PositionType::Absolute,
+                    position: Rect {
+                        bottom: Val::Px(25.),
+                        left: Val::Px(300.),
+                        ..Default::default()
+                    },
+                    padding: {
+                        Rect {
+                            left: Val::Px(5.),
+                            ..Default::default()
+                        }
+                    },
+                    ..Default::default()
+                },
+                material: background.clone(),
+                ..Default::default()
+            })
+            .insert(Ui)
+            .with_children(|parent| {
+                parent.spawn_bundle(TextBundle {
+                    text: Text {
+                        sections: vec![TextSection {
+                            value: "You did it. Nice one!".to_string(),
                             style: TextStyle {
                                 font_size: 40.0,
                                 color: Color::rgb(0.9, 0.9, 0.9),

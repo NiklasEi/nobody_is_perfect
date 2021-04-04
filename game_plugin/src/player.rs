@@ -41,6 +41,7 @@ pub struct BefriendEvent;
 pub struct DyingEvent;
 pub struct LevelUpEvent;
 pub struct NopeEvent;
+pub struct WonEvent;
 
 #[derive(SystemLabel, Clone, Hash, Debug, Eq, PartialEq)]
 enum PlayerSystemLabels {
@@ -59,6 +60,7 @@ impl Plugin for PlayerPlugin {
         .add_event::<BefriendEvent>()
         .add_event::<NopeEvent>()
         .add_event::<DyingEvent>()
+        .add_event::<WonEvent>()
         .add_event::<LevelUpEvent>()
         .add_system_set(
             SystemSet::on_enter(GameState::Playing)
@@ -163,6 +165,9 @@ fn move_player(
         }
         return;
     }
+    if player_state.level > 5 {
+        return;
+    }
     let speed = 150.;
     let movement = if let Some(player_movement) = actions.player_movement {
         Vec3::new(
@@ -201,7 +206,7 @@ fn move_field_of_view(
     mut field_of_view_query: Query<&mut Transform, (With<FieldOfView>, Without<Player>)>,
     player_state: Res<PlayerState>,
 ) {
-    if player_state.dead {
+    if player_state.dead || player_state.level > 5 {
         return;
     }
     for player_transform in player_query.iter() {
@@ -223,11 +228,12 @@ fn mark_entities_in_field_of_view(
     mut befriend_event: EventWriter<BefriendEvent>,
     mut nope_event: EventWriter<NopeEvent>,
     mut level_up_event: EventWriter<LevelUpEvent>,
+    mut won_event: EventWriter<WonEvent>,
     mut die_event: EventWriter<DyingEvent>,
     mut player_state: ResMut<PlayerState>,
     time: Res<Time>,
 ) {
-    if player_state.dead {
+    if player_state.dead || player_state.level > 5 {
         return;
     }
     if let Ok((fov_transform, field_of_view)) = field_of_view.single() {
@@ -256,7 +262,6 @@ fn mark_entities_in_field_of_view(
                 let level_diff: i32 =
                     (player_state.level as i32) - (game_entity.true_form.level() as i32);
                 if level_diff >= 0 {
-                    befriend_event.send(BefriendEvent);
                     let new_game_entity = GameEntity {
                         true_form: game_entity.true_form.clone(),
                         current_direction: game_entity.current_direction.clone(),
@@ -282,6 +287,9 @@ fn mark_entities_in_field_of_view(
                     } else {
                         player_state.courage += 20. / (level_diff as f32);
                     }
+                    if player_state.courage < 99.6 {
+                        befriend_event.send(BefriendEvent);
+                    }
                 } else if millis_since_startup - game_entity.last_contact.as_millis() > 2000 {
                     player_state.courage -= 20.;
                     if player_state.courage > 0.1 {
@@ -295,7 +303,11 @@ fn mark_entities_in_field_of_view(
         if player_state.courage > 99.5 {
             player_state.courage = 25.;
             player_state.level += 1;
-            level_up_event.send(LevelUpEvent);
+            if player_state.level > 5 {
+                won_event.send(WonEvent);
+            } else {
+                level_up_event.send(LevelUpEvent);
+            }
         } else if player_state.courage < 0.1 {
             player_state.dead = true;
             die_event.send(DyingEvent);

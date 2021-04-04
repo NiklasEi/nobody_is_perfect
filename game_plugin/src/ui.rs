@@ -148,9 +148,10 @@ fn update_courage(
 fn update_courage_level(
     mut courage_level: Query<&mut Text, With<CourageLevel>>,
     mut level_up_events: EventReader<LevelUpEvent>,
+    mut won_events: EventReader<WonEvent>,
     player_state: Res<PlayerState>,
 ) {
-    if let Some(_event) = level_up_events.iter().last() {
+    if level_up_events.iter().last().is_some() || won_events.iter().last().is_some() {
         for mut text in courage_level.iter_mut() {
             text.sections.first_mut().unwrap().value =
                 format!("Courage level: {}/7", player_state.level + 1)

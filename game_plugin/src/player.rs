@@ -304,6 +304,7 @@ fn mark_entities_in_field_of_view(
             player_state.courage = 25.;
             player_state.level += 1;
             if player_state.level > 5 {
+                player_state.courage = 100.;
                 won_event.send(WonEvent);
             } else {
                 level_up_event.send(LevelUpEvent);

@@ -219,13 +219,14 @@ fn spawn_won_text(
                 style: Style {
                     position_type: PositionType::Absolute,
                     position: Rect {
-                        bottom: Val::Px(25.),
-                        left: Val::Px(250.),
+                        bottom: Val::Px(100.),
+                        left: Val::Percent(35.),
                         ..Default::default()
                     },
                     padding: {
                         Rect {
                             left: Val::Px(5.),
+                            right: Val::Px(5.),
                             ..Default::default()
                         }
                     },

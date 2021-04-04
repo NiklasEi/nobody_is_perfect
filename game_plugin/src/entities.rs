@@ -176,7 +176,7 @@ fn spawn_beginning_entities(mut commands: Commands) {
                 .spawn_bundle(GeometryBuilder::build_as(
                     &entity.true_form.to_shape(),
                     ShapeColors {
-                        main: Color::DARK_GRAY,
+                        main: Color::AQUAMARINE,
                         outline: Color::ANTIQUE_WHITE,
                     },
                     DrawMode::Fill(FillOptions::default()),
@@ -208,6 +208,9 @@ fn spawn_entity(
     mut timer: ResMut<EntityTimer>,
     time: Res<Time>,
 ) {
+    if player_state.level > 5 || player_state.dead {
+        return;
+    }
     if !timer.tick(time.delta()).just_finished() {
         return;
     }
@@ -253,7 +256,7 @@ fn spawn_entity(
             .spawn_bundle(GeometryBuilder::build_as(
                 &entity.true_form.to_shape(),
                 ShapeColors {
-                    main: Color::DARK_GRAY,
+                    main: Color::AQUAMARINE,
                     outline: Color::ANTIQUE_WHITE,
                 },
                 draw_mode,
@@ -292,7 +295,7 @@ fn redraw_after_level_up(
                     .spawn_bundle(GeometryBuilder::build_as(
                         &game_entity.true_form.to_shape(),
                         ShapeColors {
-                            main: Color::DARK_GRAY,
+                            main: Color::AQUAMARINE,
                             outline: Color::ANTIQUE_WHITE,
                         },
                         DrawMode::Fill(FillOptions::default()),

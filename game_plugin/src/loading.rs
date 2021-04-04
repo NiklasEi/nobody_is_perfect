@@ -41,7 +41,8 @@ pub struct AudioAssets {
 }
 
 pub struct TextureAssets {
-    pub texture_background: Handle<Texture>,
+    pub background: Handle<Texture>,
+    pub menu: Handle<Texture>,
 }
 
 fn start_loading(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -62,6 +63,7 @@ fn start_loading(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     let mut textures: Vec<HandleUntyped> = vec![];
     textures.push(asset_server.load_untyped(PATHS.texture_background));
+    textures.push(asset_server.load_untyped(PATHS.texture_menu));
 
     commands.insert_resource(LoadingState {
         textures,
@@ -110,7 +112,8 @@ fn check_state(
     });
 
     commands.insert_resource(TextureAssets {
-        texture_background: asset_server.get_handle(PATHS.texture_background),
+        background: asset_server.get_handle(PATHS.texture_background),
+        menu: asset_server.get_handle(PATHS.texture_menu),
     });
 
     state.set(GameState::RenderBackground).unwrap();

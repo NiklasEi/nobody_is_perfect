@@ -72,7 +72,7 @@ fn spawn_camera_and_background(
         .spawn_bundle(OrthographicCameraBundle::new_2d())
         .insert(PlayerCamera);
     commands.spawn_bundle(SpriteBundle {
-        material: materials.add(texture_assets.texture_background.clone().into()),
+        material: materials.add(texture_assets.background.clone().into()),
         ..Default::default()
     });
     state.set(GameState::Menu).unwrap();

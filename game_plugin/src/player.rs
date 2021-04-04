@@ -63,8 +63,7 @@ impl Plugin for PlayerPlugin {
         .add_system_set(
             SystemSet::on_enter(GameState::Playing)
                 .with_system(spawn_player.system())
-                .with_system(spawn_field_of_view.system())
-                .with_system(spawn_camera.system()),
+                .with_system(spawn_field_of_view.system()),
         )
         .add_system_set(
             SystemSet::on_update(GameState::Playing)
@@ -79,7 +78,8 @@ impl Plugin for PlayerPlugin {
                     mark_entities_in_field_of_view
                         .system()
                         .after(PlayerSystemLabels::MoveFieldOfView),
-                ).with_system(remove_fov_on_death.system()),
+                )
+                .with_system(remove_fov_on_death.system()),
         )
         .add_system_set(SystemSet::on_exit(GameState::Playing).with_system(remove_player.system()));
     }
@@ -87,12 +87,6 @@ impl Plugin for PlayerPlugin {
 
 struct CursorPosition {
     position: Vec2,
-}
-
-fn spawn_camera(mut commands: Commands) {
-    commands
-        .spawn_bundle(OrthographicCameraBundle::new_2d())
-        .insert(PlayerCamera);
 }
 
 fn spawn_player(mut commands: Commands) {
@@ -109,7 +103,7 @@ fn spawn_player(mut commands: Commands) {
                 outline: Color::ANTIQUE_WHITE,
             },
             DrawMode::Fill(FillOptions::default()),
-            Transform::from_translation(Vec3::new(0., 0., 1.)),
+            Transform::from_translation(Vec3::new(0., 0., 20.)),
         ))
         .insert(Player);
     commands.insert_resource(PlayerState::default());
@@ -147,7 +141,7 @@ fn spawn_field_of_view(mut commands: Commands) {
                 outline: Color::ANTIQUE_WHITE,
             },
             DrawMode::Fill(FillOptions::default()),
-            Transform::from_translation(Vec3::new(0., 0., 0.)),
+            Transform::from_translation(Vec3::new(0., 0., 5.)),
         ))
         .insert(field_of_view);
 }
@@ -259,7 +253,9 @@ fn mark_entities_in_field_of_view(
                 && (entity_from_player.angle_between(fov_direction).abs()
                     < field_of_view.half_angle)
             {
-                if game_entity.true_form.level() <= player_state.level {
+                let level_diff: i32 =
+                    (player_state.level as i32) - (game_entity.true_form.level() as i32);
+                if level_diff >= 0 {
                     befriend_event.send(BefriendEvent);
                     let new_game_entity = GameEntity {
                         true_form: game_entity.true_form.clone(),
@@ -281,7 +277,11 @@ fn mark_entities_in_field_of_view(
                         ))
                         .insert(new_game_entity)
                         .insert(BefriendedEntity);
-                    player_state.courage += 20.;
+                    if level_diff == 0 {
+                        player_state.courage += 20.;
+                    } else {
+                        player_state.courage += 20. / (level_diff as f32);
+                    }
                 } else if millis_since_startup - game_entity.last_contact.as_millis() > 2000 {
                     player_state.courage -= 20.;
                     if player_state.courage > 0.1 {
@@ -293,7 +293,7 @@ fn mark_entities_in_field_of_view(
         }
         player_state.courage = player_state.courage.clamp(0., 100.);
         if player_state.courage > 99.5 {
-            player_state.courage = 0.;
+            player_state.courage = 25.;
             player_state.level += 1;
             level_up_event.send(LevelUpEvent);
         } else if player_state.courage < 0.1 {
@@ -314,7 +314,6 @@ fn remove_fov_on_death(
         }
     }
 }
-
 
 fn remove_player(
     mut commands: Commands,

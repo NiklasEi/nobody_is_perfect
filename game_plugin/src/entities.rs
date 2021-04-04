@@ -15,7 +15,11 @@ struct SpawnEntityStage;
 
 impl Plugin for EntitiesPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.insert_resource(EntityTimer::from_seconds(2., true))
+        app.insert_resource(EntityTimer::from_seconds(10., true))
+            .add_system_set(
+                SystemSet::on_enter(GameState::Playing)
+                    .with_system(spawn_beginning_entities.system()),
+            )
             .add_system_set(
                 SystemSet::on_update(GameState::Playing)
                     .with_system(move_entities.system())
@@ -29,6 +33,35 @@ impl Plugin for EntitiesPlugin {
 }
 
 type EntityTimer = Timer;
+
+pub enum Spawn {
+    UpLeft,
+    UpRight,
+    BottomLeft,
+    BottomRight,
+}
+
+impl Spawn {
+    pub fn get_position(&self) -> Vec2 {
+        match self {
+            Spawn::UpLeft => Vec2::new(250., -250.),
+            Spawn::UpRight => Vec2::new(250., 250.),
+            Spawn::BottomLeft => Vec2::new(-250., -250.),
+            Spawn::BottomRight => Vec2::new(-250., 250.),
+        }
+    }
+}
+
+impl Distribution<Spawn> for Standard {
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Spawn {
+        match rng.gen_range(0..4) {
+            0 => Spawn::UpLeft,
+            1 => Spawn::UpRight,
+            2 => Spawn::BottomLeft,
+            _ => Spawn::BottomRight,
+        }
+    }
+}
 
 #[derive(Clone)]
 pub enum EntityForm {
@@ -93,6 +126,50 @@ pub struct GameEntity {
     pub known: bool,
 }
 
+fn spawn_beginning_entities(mut commands: Commands) {
+    for _count in 0..20 {
+        let form: EntityForm = random();
+        let entity = GameEntity {
+            true_form: form.clone(),
+            current_direction: Vec2::new((2. * random::<f32>()) - 1., (2. * random::<f32>()) - 1.)
+                .normalize(),
+            last_contact: Duration::from_secs(0),
+            next_direction_change: Duration::from_secs(2)
+                + Duration::from_secs(3).mul_f32(random::<f32>()),
+            known: false,
+        };
+        let position = Vec2::new(random::<f32>() - 0.5, random::<f32>() - 0.5).normalize() * 500.;
+        if entity.true_form.level() == 0 {
+            commands
+                .spawn_bundle(GeometryBuilder::build_as(
+                    &entity.true_form.to_shape(),
+                    ShapeColors {
+                        main: Color::DARK_GRAY,
+                        outline: Color::ANTIQUE_WHITE,
+                    },
+                    DrawMode::Fill(FillOptions::default()),
+                    Transform::from_translation(Vec3::new(position.x, position.y, 10.)),
+                ))
+                .insert(entity);
+        } else {
+            commands
+                .spawn_bundle(GeometryBuilder::build_as(
+                    &Circle {
+                        radius: 26.,
+                        center: Default::default(),
+                    },
+                    ShapeColors {
+                        main: Color::DARK_GRAY,
+                        outline: Color::ANTIQUE_WHITE,
+                    },
+                    DrawMode::Fill(FillOptions::default()),
+                    Transform::from_translation(Vec3::new(position.x, position.y, 10.)),
+                ))
+                .insert(entity);
+        }
+    }
+}
+
 fn spawn_entity(
     mut commands: Commands,
     player_state: Res<PlayerState>,
@@ -103,6 +180,8 @@ fn spawn_entity(
         return;
     }
 
+    let spawn: Spawn = random();
+    let position = spawn.get_position();
     let form: EntityForm = random();
     let entity = GameEntity {
         true_form: form.clone(),
@@ -121,7 +200,7 @@ fn spawn_entity(
                     outline: Color::ANTIQUE_WHITE,
                 },
                 DrawMode::Fill(FillOptions::default()),
-                Transform::from_translation(Vec3::new(0., 0., 0.)),
+                Transform::from_translation(Vec3::new(position.x, position.y, 10.)),
             ))
             .insert(entity);
     } else {
@@ -136,7 +215,7 @@ fn spawn_entity(
                     outline: Color::ANTIQUE_WHITE,
                 },
                 DrawMode::Fill(FillOptions::default()),
-                Transform::from_translation(Vec3::new(0., 0., 0.)),
+                Transform::from_translation(Vec3::new(position.x, position.y, 10.)),
             ))
             .insert(entity);
     }

@@ -8,8 +8,8 @@ mod ui;
 
 use crate::actions::ActionsPlugin;
 use crate::audio::InternalAudioPlugin;
-use crate::loading::LoadingPlugin;
-use crate::player::PlayerPlugin;
+use crate::loading::{LoadingPlugin, TextureAssets};
+use crate::player::{PlayerCamera, PlayerPlugin};
 
 use bevy::app::AppBuilder;
 // use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
@@ -23,6 +23,7 @@ use bevy_prototype_lyon::prelude::ShapePlugin;
 enum GameState {
     Loading,
     Playing,
+    RenderBackground,
     Menu,
     Restart,
 }
@@ -47,6 +48,10 @@ impl Plugin for GamePlugin {
             .add_plugin(PlayerPlugin)
             .add_system_set(
                 SystemSet::on_enter(GameState::Restart).with_system(switch_to_game.system()),
+            )
+            .add_system_set(
+                SystemSet::on_enter(GameState::RenderBackground)
+                    .with_system(spawn_camera_and_background.system()),
             );
         // .add_plugin(FrameTimeDiagnosticsPlugin::default())
         // .add_plugin(LogDiagnosticsPlugin::default())
@@ -55,4 +60,20 @@ impl Plugin for GamePlugin {
 
 fn switch_to_game(mut state: ResMut<State<GameState>>) {
     state.set(GameState::Playing).unwrap();
+}
+
+fn spawn_camera_and_background(
+    mut commands: Commands,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    mut state: ResMut<State<GameState>>,
+    texture_assets: Res<TextureAssets>,
+) {
+    commands
+        .spawn_bundle(OrthographicCameraBundle::new_2d())
+        .insert(PlayerCamera);
+    commands.spawn_bundle(SpriteBundle {
+        material: materials.add(texture_assets.texture_background.clone().into()),
+        ..Default::default()
+    });
+    state.set(GameState::Menu).unwrap();
 }

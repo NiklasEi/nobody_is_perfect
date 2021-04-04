@@ -23,6 +23,7 @@ struct Ui;
 struct CourageMeter;
 struct CourageMeterRest;
 struct RetryButton;
+struct CourageLevel;
 
 struct ButtonMaterials {
     normal: Handle<ColorMaterial>,
@@ -39,7 +40,11 @@ impl FromWorld for ButtonMaterials {
     }
 }
 
-fn spawn_ui(mut commands: Commands, mut color_materials: ResMut<Assets<ColorMaterial>>) {
+fn spawn_ui(
+    mut commands: Commands,
+    font_assets: Res<FontAssets>,
+    mut color_materials: ResMut<Assets<ColorMaterial>>,
+) {
     let background = color_materials.add(Color::GRAY.into());
     let courage = color_materials.add(Color::ORANGE_RED.into());
     commands.spawn_bundle(UiCameraBundle::default());
@@ -77,6 +82,41 @@ fn spawn_ui(mut commands: Commands, mut color_materials: ResMut<Assets<ColorMate
         })
         .insert(CourageMeterRest)
         .insert(Ui);
+    commands
+        .spawn_bundle(NodeBundle {
+            style: Style {
+                size: Size::new(Val::Px(0.0), Val::Px(30.0)),
+                position_type: PositionType::Absolute,
+                position: Rect {
+                    right: Val::Px(220.),
+                    top: Val::Px(15.),
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
+            material: courage.clone(),
+            ..Default::default()
+        })
+        .insert(Ui)
+        .with_children(|parent| {
+            parent
+                .spawn_bundle(TextBundle {
+                    text: Text {
+                        sections: vec![TextSection {
+                            value: "Courage level: 0".to_string(),
+                            style: TextStyle {
+                                font_size: 30.0,
+                                color: Color::BLACK,
+                                font: font_assets.fira_sans.clone(),
+                                ..Default::default()
+                            },
+                        }],
+                        alignment: Default::default(),
+                    },
+                    ..Default::default()
+                })
+                .insert(CourageLevel);
+        });
 }
 
 fn update_courage(

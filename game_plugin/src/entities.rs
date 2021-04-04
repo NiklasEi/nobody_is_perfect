@@ -15,7 +15,7 @@ struct SpawnEntityStage;
 
 impl Plugin for EntitiesPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.insert_resource(EntityTimer::from_seconds(10., true))
+        app.insert_resource(EntityTimer::from_seconds(3., true))
             .add_system_set(
                 SystemSet::on_enter(GameState::Playing)
                     .with_system(spawn_beginning_entities.system()),
@@ -63,7 +63,7 @@ impl Distribution<Spawn> for Standard {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum EntityForm {
     Rectangle,
     Pentagon,
@@ -71,6 +71,17 @@ pub enum EntityForm {
     Heptagon,
     Octagon,
     Nonagon,
+    Enemy,
+}
+
+pub fn build_enemy_geometry() -> impl Geometry {
+    let mut builder = PathBuilder::new();
+    builder.line_to(Vec2::new(-20., 20.));
+    builder.line_to(Vec2::new(-15., -20.));
+    builder.line_to(Vec2::new(-15., 20.));
+    builder.line_to(Vec2::new(-10., 15.));
+    builder.line_to(Vec2::ZERO);
+    builder.build()
 }
 
 impl EntityForm {
@@ -82,6 +93,7 @@ impl EntityForm {
             EntityForm::Heptagon => 7,
             EntityForm::Octagon => 8,
             EntityForm::Nonagon => 9,
+            _ => 0,
         };
         shapes::RegularPolygon {
             sides,
@@ -98,6 +110,7 @@ impl EntityForm {
             EntityForm::Heptagon => 3,
             EntityForm::Octagon => 4,
             EntityForm::Nonagon => 5,
+            EntityForm::Enemy => 99,
         }
     }
 }
@@ -127,8 +140,14 @@ pub struct GameEntity {
 }
 
 fn spawn_beginning_entities(mut commands: Commands) {
-    for _count in 0..20 {
-        let form: EntityForm = random();
+    for count in 0..30 {
+        let form: EntityForm = if count < 5 {
+            EntityForm::Rectangle
+        } else if count < 10 {
+            EntityForm::Pentagon
+        } else {
+            random()
+        };
         let entity = GameEntity {
             true_form: form.clone(),
             current_direction: Vec2::new((2. * random::<f32>()) - 1., (2. * random::<f32>()) - 1.)
@@ -179,18 +198,43 @@ fn spawn_entity(
     if !timer.tick(time.delta()).just_finished() {
         return;
     }
-
     let spawn: Spawn = random();
     let position = spawn.get_position();
-    let form: EntityForm = random();
     let entity = GameEntity {
-        true_form: form.clone(),
+        true_form: if random::<f32>() > 0.8 {
+            random()
+        } else {
+            EntityForm::Enemy
+        },
         current_direction: Vec2::new((2. * random::<f32>()) - 1., (2. * random::<f32>()) - 1.)
             .normalize(),
         last_contact: Duration::from_secs(0),
         next_direction_change: time.time_since_startup() + Duration::from_secs(2),
         known: false,
     };
+    let draw_mode = if entity.true_form == EntityForm::Enemy {
+        DrawMode::Stroke(
+            StrokeOptions::default()
+                .with_line_join(LineJoin::Round)
+                .with_line_width(2.),
+        )
+    } else {
+        DrawMode::Fill(FillOptions::default())
+    };
+    if entity.true_form == EntityForm::Enemy {
+        commands
+            .spawn_bundle(GeometryBuilder::build_as(
+                &build_enemy_geometry(),
+                ShapeColors {
+                    main: Color::DARK_GRAY,
+                    outline: Color::ANTIQUE_WHITE,
+                },
+                draw_mode,
+                Transform::from_translation(Vec3::new(position.x, position.y, 10.)),
+            ))
+            .insert(entity);
+        return;
+    }
     if player_state.level >= entity.true_form.level() {
         commands
             .spawn_bundle(GeometryBuilder::build_as(
@@ -199,7 +243,7 @@ fn spawn_entity(
                     main: Color::DARK_GRAY,
                     outline: Color::ANTIQUE_WHITE,
                 },
-                DrawMode::Fill(FillOptions::default()),
+                draw_mode,
                 Transform::from_translation(Vec3::new(position.x, position.y, 10.)),
             ))
             .insert(entity);
@@ -214,7 +258,7 @@ fn spawn_entity(
                     main: Color::DARK_GRAY,
                     outline: Color::ANTIQUE_WHITE,
                 },
-                DrawMode::Fill(FillOptions::default()),
+                draw_mode,
                 Transform::from_translation(Vec3::new(position.x, position.y, 10.)),
             ))
             .insert(entity);

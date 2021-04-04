@@ -1,5 +1,5 @@
 use crate::loading::FontAssets;
-use crate::player::{DyingEvent, PlayerState};
+use crate::player::{DyingEvent, LevelUpEvent, PlayerState};
 use crate::GameState;
 use bevy::prelude::*;
 
@@ -146,10 +146,14 @@ fn update_courage(
 
 fn update_courage_level(
     mut courage_level: Query<&mut Text, With<CourageLevel>>,
+    mut level_up_events: EventReader<LevelUpEvent>,
     player_state: Res<PlayerState>,
 ) {
-    for mut text in courage_level.iter_mut() {
-        text.sections.first_mut().unwrap().value = format!("Courage level: {}", player_state.level)
+    if let Some(_event) = level_up_events.iter().last() {
+        for mut text in courage_level.iter_mut() {
+            text.sections.first_mut().unwrap().value =
+                format!("Courage level: {}", player_state.level)
+        }
     }
 }
 

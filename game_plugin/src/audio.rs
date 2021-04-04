@@ -1,5 +1,5 @@
 use crate::loading::AudioAssets;
-use crate::player::{BefriendEvent, NopeEvent};
+use crate::player::{BefriendEvent, DyingEvent, NopeEvent};
 use crate::GameState;
 use bevy::prelude::*;
 use bevy_kira_audio::{Audio, AudioChannel, AudioPlugin};
@@ -18,7 +18,8 @@ impl Plugin for InternalAudioPlugin {
         .add_system_set(
             SystemSet::on_update(GameState::Playing)
                 .with_system(befriend_audio.system())
-                .with_system(nope_audio.system()),
+                .with_system(nope_audio.system())
+                .with_system(dying_audio.system()),
         )
         .add_system_set(SystemSet::on_exit(GameState::Playing).with_system(stop_audio.system()));
     }
@@ -67,6 +68,17 @@ fn nope_audio(
         } else {
             audio.play_in_channel(audio_assets.nope_2.clone(), &channels.effects);
         }
+    }
+}
+
+fn dying_audio(
+    audio_assets: Res<AudioAssets>,
+    audio: Res<Audio>,
+    channels: Res<AudioChannels>,
+    mut events: EventReader<DyingEvent>,
+) {
+    if let Some(_event) = events.iter().last() {
+        audio.play_in_channel(audio_assets.dying.clone(), &channels.effects);
     }
 }
 

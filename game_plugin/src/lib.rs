@@ -2,6 +2,7 @@ mod actions;
 mod audio;
 mod entities;
 mod loading;
+mod menu;
 mod player;
 mod ui;
 
@@ -13,6 +14,7 @@ use crate::player::PlayerPlugin;
 use bevy::app::AppBuilder;
 // use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use crate::entities::EntitiesPlugin;
+use crate::menu::MenuPlugin;
 use crate::ui::UiPlugin;
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::ShapePlugin;
@@ -21,6 +23,7 @@ use bevy_prototype_lyon::prelude::ShapePlugin;
 enum GameState {
     Loading,
     Playing,
+    Menu,
 }
 
 pub struct GamePlugin;
@@ -37,6 +40,7 @@ impl Plugin for GamePlugin {
             })
             .add_plugin(ShapePlugin)
             .add_plugin(EntitiesPlugin)
+            .add_plugin(MenuPlugin)
             .add_plugin(UiPlugin)
             .add_plugin(LoadingPlugin)
             .add_plugin(ActionsPlugin)

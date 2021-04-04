@@ -16,6 +16,7 @@ pub struct Player;
 pub struct PlayerState {
     pub level: usize,
     pub courage: f32,
+    pub dead: bool,
 }
 
 pub struct PlayerCamera;
@@ -27,6 +28,7 @@ pub struct FieldOfView {
 pub struct InFieldOfView;
 
 pub struct BefriendEvent;
+pub struct DyingEvent;
 pub struct LevelUpEvent;
 pub struct NopeEvent;
 
@@ -42,14 +44,16 @@ impl Plugin for PlayerPlugin {
             position: Vec2::new(0., 0.),
         })
         .insert_resource(PlayerState {
+            dead: false,
             level: 0,
-            courage: 0.0,
+            courage: 50.0,
         })
         .register_component(ComponentDescriptor::new::<InFieldOfView>(
             StorageType::SparseSet,
         ))
         .add_event::<BefriendEvent>()
         .add_event::<NopeEvent>()
+        .add_event::<DyingEvent>()
         .add_event::<LevelUpEvent>()
         .add_system_set(
             SystemSet::on_enter(GameState::Playing)
@@ -151,7 +155,11 @@ fn move_player(
     mut cursor_position: ResMut<CursorPosition>,
     mut player_query: Query<&mut Transform, (With<Player>, Without<PlayerCamera>)>,
     mut player_camera_query: Query<&mut Transform, (With<PlayerCamera>, Without<Player>)>,
+    player_state: Res<PlayerState>,
 ) {
+    if player_state.dead {
+        return;
+    }
     let speed = 150.;
     let movement = if let Some(player_movement) = actions.player_movement {
         Vec3::new(
@@ -188,7 +196,11 @@ fn move_player(
 fn move_field_of_view(
     player_query: Query<&Transform, (With<Player>, Without<FieldOfView>)>,
     mut field_of_view_query: Query<&mut Transform, (With<FieldOfView>, Without<Player>)>,
+    player_state: Res<PlayerState>,
 ) {
+    if player_state.dead {
+        return;
+    }
     for player_transform in player_query.iter() {
         for mut fov_transform in field_of_view_query.iter_mut() {
             fov_transform.translation = Vec3::new(
@@ -208,9 +220,13 @@ fn mark_entities_in_field_of_view(
     mut befriend_event: EventWriter<BefriendEvent>,
     mut nope_event: EventWriter<NopeEvent>,
     mut level_up_event: EventWriter<LevelUpEvent>,
+    mut die_event: EventWriter<DyingEvent>,
     mut player_state: ResMut<PlayerState>,
     time: Res<Time>,
 ) {
+    if player_state.dead {
+        return;
+    }
     if let Ok((fov_transform, field_of_view)) = field_of_view.single() {
         let player_rotation = fov_transform
             .rotation
@@ -258,8 +274,10 @@ fn mark_entities_in_field_of_view(
                         .insert(BefriendedEntity);
                     player_state.courage += 20.;
                 } else if millis_since_startup - game_entity.last_contact.as_millis() > 2000 {
-                    nope_event.send(NopeEvent);
                     player_state.courage -= 20.;
+                    if player_state.courage > 0.1 {
+                        nope_event.send(NopeEvent);
+                    }
                     game_entity.last_contact = time.time_since_startup();
                 }
             }
@@ -269,6 +287,9 @@ fn mark_entities_in_field_of_view(
             player_state.courage = 0.;
             player_state.level += 1;
             level_up_event.send(LevelUpEvent);
+        } else if player_state.courage < 0.1 {
+            player_state.dead = true;
+            die_event.send(DyingEvent);
         }
     }
 }

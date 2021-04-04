@@ -139,7 +139,7 @@ fn spawn_field_of_view(mut commands: Commands) {
         .spawn_bundle(GeometryBuilder::build_as(
             &build_fov_geometry(&field_of_view),
             ShapeColors {
-                main: Color::GRAY,
+                main: Color::AQUAMARINE,
                 outline: Color::ANTIQUE_WHITE,
             },
             DrawMode::Fill(FillOptions::default()),
@@ -274,7 +274,7 @@ fn mark_entities_in_field_of_view(
                         .spawn_bundle(GeometryBuilder::build_as(
                             &new_game_entity.true_form.to_shape(),
                             ShapeColors {
-                                main: Color::GREEN,
+                                main: Color::LIME_GREEN,
                                 outline: Color::ANTIQUE_WHITE,
                             },
                             DrawMode::Fill(FillOptions::default()),

@@ -15,7 +15,7 @@ struct SpawnEntityStage;
 
 impl Plugin for EntitiesPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.insert_resource(EntityTimer::from_seconds(3., true))
+        app.insert_resource(EntityTimer::from_seconds(2.2, true))
             .add_system_set(
                 SystemSet::on_enter(GameState::Playing)
                     .with_system(spawn_beginning_entities.system()),

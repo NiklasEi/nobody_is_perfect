@@ -1,6 +1,6 @@
 [package]
 name = "game_plugin"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["Niklas Eicker <git@nikl.me>"]
 edition = "2018"
 

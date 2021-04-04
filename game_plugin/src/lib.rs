@@ -37,7 +37,7 @@ pub struct GameWorld {
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_state(GameState::Loading)
-            .insert_resource(GameWorld { border: 1000. })
+            .insert_resource(GameWorld { border: 980. })
             .add_plugin(ShapePlugin)
             .add_plugin(EntitiesPlugin)
             .add_plugin(MenuPlugin)

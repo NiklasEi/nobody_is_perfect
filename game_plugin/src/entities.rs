@@ -1,5 +1,5 @@
 use crate::player::{LevelUpEvent, PlayerState};
-use crate::GameState;
+use crate::{GameState, GameWorld};
 use bevy::prelude::*;
 use bevy::utils::Duration;
 use bevy_prototype_lyon::prelude::shapes::*;
@@ -247,11 +247,34 @@ fn redraw_after_level_up(
     }
 }
 
-fn move_entities(mut entities_query: Query<(&mut Transform, &mut GameEntity)>, time: Res<Time>) {
+fn move_entities(
+    mut entities_query: Query<(&mut Transform, &mut GameEntity)>,
+    time: Res<Time>,
+    game_world: Res<GameWorld>,
+) {
     let millis_since_startup = time.time_since_startup().as_millis();
     let mut random = thread_rng();
     for (mut transform, mut game_entity) in entities_query.iter_mut() {
-        if millis_since_startup >= game_entity.next_direction_change.as_millis() {
+        transform.translation += Vec3::new(
+            game_entity.current_direction.x * time.delta_seconds() * 100.,
+            game_entity.current_direction.y * time.delta_seconds() * 100.,
+            0.,
+        );
+        let mut change_direction = false;
+        if transform.translation.x > game_world.border
+            || transform.translation.x < -game_world.border
+            || transform.translation.y > game_world.border
+            || transform.translation.y < -game_world.border
+        {
+            transform.translation -= Vec3::new(
+                game_entity.current_direction.x * time.delta_seconds() * 100.,
+                game_entity.current_direction.y * time.delta_seconds() * 100.,
+                0.,
+            );
+            change_direction = true;
+        }
+        if millis_since_startup >= game_entity.next_direction_change.as_millis() || change_direction
+        {
             game_entity.current_direction = Vec2::new(
                 (2. * random.gen::<f32>()) - 1.,
                 (2. * random.gen::<f32>()) - 1.,
@@ -261,11 +284,6 @@ fn move_entities(mut entities_query: Query<(&mut Transform, &mut GameEntity)>, t
                 + Duration::from_secs(2)
                 + Duration::from_secs(3).mul_f32(random.gen::<f32>());
         }
-        transform.translation += Vec3::new(
-            game_entity.current_direction.x,
-            game_entity.current_direction.y,
-            0.,
-        );
     }
 }
 

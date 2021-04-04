@@ -85,16 +85,22 @@ fn spawn_ui(
     commands
         .spawn_bundle(NodeBundle {
             style: Style {
-                size: Size::new(Val::Px(0.0), Val::Px(30.0)),
+                size: Size::new(Val::Px(200.0), Val::Px(30.0)),
                 position_type: PositionType::Absolute,
                 position: Rect {
-                    right: Val::Px(220.),
+                    right: Val::Px(15.),
                     top: Val::Px(15.),
                     ..Default::default()
                 },
+                padding: {
+                    Rect {
+                        left: Val::Px(5.),
+                        ..Default::default()
+                    }
+                },
                 ..Default::default()
             },
-            material: courage.clone(),
+            material: background.clone(),
             ..Default::default()
         })
         .insert(Ui)

@@ -77,9 +77,22 @@ pub enum EntityForm {
 pub fn build_enemy_geometry() -> impl Geometry {
     let mut builder = PathBuilder::new();
     builder.line_to(Vec2::new(-20., 20.));
-    builder.line_to(Vec2::new(-15., -20.));
-    builder.line_to(Vec2::new(-15., 20.));
-    builder.line_to(Vec2::new(-10., 15.));
+    builder.line_to(Vec2::new(20., 20.));
+    builder.line_to(Vec2::new(20., -20.));
+    builder.line_to(Vec2::new(-20., -20.));
+    builder.line_to(Vec2::new(-20., 15.));
+    builder.line_to(Vec2::new(15., 15.));
+    builder.line_to(Vec2::new(15., -15.));
+    builder.line_to(Vec2::new(-15., -15.));
+    builder.line_to(Vec2::new(-15., 10.));
+    builder.line_to(Vec2::new(10., 10.));
+    builder.line_to(Vec2::new(10., -10.));
+    builder.line_to(Vec2::new(-10., -10.));
+    builder.line_to(Vec2::new(-10., 5.));
+    builder.line_to(Vec2::new(5., 5.));
+    builder.line_to(Vec2::new(5., -5.));
+    builder.line_to(Vec2::new(-5., -5.));
+    builder.line_to(Vec2::new(-5., 0.));
     builder.line_to(Vec2::ZERO);
     builder.build()
 }
@@ -216,7 +229,7 @@ fn spawn_entity(
         DrawMode::Stroke(
             StrokeOptions::default()
                 .with_line_join(LineJoin::Round)
-                .with_line_width(2.),
+                .with_line_width(3.),
         )
     } else {
         DrawMode::Fill(FillOptions::default())

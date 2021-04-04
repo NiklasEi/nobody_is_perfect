@@ -168,7 +168,7 @@ fn move_player(
     if player_state.level > 5 {
         return;
     }
-    let speed = 150.;
+    let speed = 200.;
     let movement = if let Some(player_movement) = actions.player_movement {
         Vec3::new(
             player_movement.x * speed * time.delta_seconds(),

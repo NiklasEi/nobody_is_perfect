@@ -221,7 +221,7 @@ fn spawn_entity(
         },
         current_direction: Vec2::new((2. * random::<f32>()) - 1., (2. * random::<f32>()) - 1.)
             .normalize(),
-        last_contact: Duration::from_secs(0),
+        last_contact: time.time_since_startup(),
         next_direction_change: time.time_since_startup() + Duration::from_secs(2),
         known: false,
     };
